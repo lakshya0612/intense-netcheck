@@ -1,0 +1,92 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-01-24",
+  "deployments": {
+    "sentinel": {
+      "label": "Sentinel",
+      "description": "Edge device deployment with Sentinel Hub",
+      "endpoints": [
+        {"id": "intenseye-api", "label": "Intenseye API", "category": "Core API", "protocol": "https", "host": "api.intenseye.com", "port": 443, "region": "all"},
+        {"id": "temporal", "label": "Temporal Workflow", "category": "Core API", "protocol": "https", "host": "temporal.intenseye.com", "port": 443, "region": "all"},
+        {"id": "dashboard", "label": "Dashboard", "category": "Core API", "protocol": "https", "host": "dashboard.intenseye.com", "port": 443, "region": "all"},
+        {"id": "pulsar", "label": "Pulsar Event Transport", "category": "Telemetry", "protocol": "tcp", "host": "pulsar.intenseye.com", "port": 6651, "region": "all"},
+        {"id": "nats-us", "label": "NATS US", "category": "Telemetry", "protocol": "https", "host": "us-nats.intenseye.com", "port": 443, "region": "americas"},
+        {"id": "nats-eu", "label": "NATS EU", "category": "Telemetry", "protocol": "https", "host": "eu-nats.intenseye.com", "port": 443, "region": "emea"},
+        {"id": "nats-as", "label": "NATS Asia", "category": "Telemetry", "protocol": "https", "host": "as-nats.intenseye.com", "port": 443, "region": "apac"},
+        {"id": "video-us01", "label": "Video US01", "category": "Video", "protocol": "tcp", "host": "us01live.intenseye.com", "port": 32401, "region": "americas"},
+        {"id": "video-us02", "label": "Video US02", "category": "Video", "protocol": "tcp", "host": "us02live.intenseye.com", "port": 32402, "region": "americas"},
+        {"id": "video-eu01", "label": "Video EU01", "category": "Video", "protocol": "tcp", "host": "eu01live.intenseye.com", "port": 32401, "region": "emea"},
+        {"id": "video-eu02", "label": "Video EU02", "category": "Video", "protocol": "tcp", "host": "eu02live.intenseye.com", "port": 32402, "region": "emea"},
+        {"id": "video-eu03", "label": "Video EU03", "category": "Video", "protocol": "tcp", "host": "eu03live.intenseye.com", "port": 32403, "region": "emea"},
+        {"id": "video-as01", "label": "Video AS01", "category": "Video", "protocol": "tcp", "host": "as01live.intenseye.com", "port": 32401, "region": "apac"},
+        {"id": "video-as02", "label": "Video AS02", "category": "Video", "protocol": "tcp", "host": "as02live.intenseye.com", "port": 32402, "region": "apac"},
+        {"id": "gcs", "label": "Google Cloud Storage", "category": "Storage", "protocol": "https", "host": "storage.googleapis.com", "port": 443, "region": "all"},
+        {"id": "gcr", "label": "Container Registry", "category": "Storage", "protocol": "https", "host": "gcr.io", "port": 443, "region": "all"},
+        {"id": "balena-api", "label": "Balena API", "category": "Device Management", "protocol": "https", "host": "api.balena-cloud.com", "port": 443, "region": "all"},
+        {"id": "balena-vpn", "label": "Balena VPN", "category": "Device Management", "protocol": "https", "host": "vpn.balena-cloud.com", "port": 443, "region": "all"},
+        {"id": "balena-registry", "label": "Balena Registry", "category": "Device Management", "protocol": "https", "host": "registry2.balena-cloud.com", "port": 443, "region": "all"},
+        {"id": "launchdarkly-app", "label": "LaunchDarkly App", "category": "Feature Flags", "protocol": "https", "host": "app.launchdarkly.com", "port": 443, "region": "all"},
+        {"id": "launchdarkly-stream", "label": "LaunchDarkly Stream", "category": "Feature Flags", "protocol": "https", "host": "stream.launchdarkly.com", "port": 443, "region": "all"},
+        {"id": "launchdarkly-events", "label": "LaunchDarkly Events", "category": "Feature Flags", "protocol": "https", "host": "events.launchdarkly.com", "port": 443, "region": "all"}
+      ]
+    },
+    "cloud": {
+      "label": "Cloud (Iris)",
+      "description": "Cloud integration via Iris application",
+      "endpoints": [
+        {"id": "intenseye-api", "label": "Intenseye API", "category": "Core API", "protocol": "https", "host": "api.intenseye.com", "port": 443, "region": "all"},
+        {"id": "temporal", "label": "Temporal Workflow", "category": "Core API", "protocol": "https", "host": "temporal.intenseye.com", "port": 443, "region": "all"},
+        {"id": "rtsps-eu01", "label": "Video Stream EU01", "category": "Video", "protocol": "tcp", "host": "eu01live.intenseye.com", "port": 322, "region": "emea"},
+        {"id": "rtsps-eu02", "label": "Video Stream EU02", "category": "Video", "protocol": "tcp", "host": "eu02live.intenseye.com", "port": 322, "region": "emea"},
+        {"id": "rtsps-eu03", "label": "Video Stream EU03", "category": "Video", "protocol": "tcp", "host": "eu03live.intenseye.com", "port": 322, "region": "emea"},
+        {"id": "rtsps-us01", "label": "Video Stream US01", "category": "Video", "protocol": "tcp", "host": "us01live.intenseye.com", "port": 322, "region": "americas"},
+        {"id": "rtsps-us02", "label": "Video Stream US02", "category": "Video", "protocol": "tcp", "host": "us02live.intenseye.com", "port": 322, "region": "americas"},
+        {"id": "rtsps-as01", "label": "Video Stream AS01", "category": "Video", "protocol": "tcp", "host": "as01live.intenseye.com", "port": 322, "region": "apac"},
+        {"id": "rtsps-as02", "label": "Video Stream AS02", "category": "Video", "protocol": "tcp", "host": "as02live.intenseye.com", "port": 322, "region": "apac"},
+        {"id": "nats-us", "label": "NATS US", "category": "Telemetry", "protocol": "https", "host": "us-nats.intenseye.com", "port": 443, "region": "americas"},
+        {"id": "nats-eu", "label": "NATS EU", "category": "Telemetry", "protocol": "https", "host": "eu-nats.intenseye.com", "port": 443, "region": "emea"},
+        {"id": "nats-as", "label": "NATS Asia", "category": "Telemetry", "protocol": "https", "host": "as-nats.intenseye.com", "port": 443, "region": "apac"},
+        {"id": "s3-general", "label": "AWS S3", "category": "Storage", "protocol": "https", "host": "s3.amazonaws.com", "port": 443, "region": "all"},
+        {"id": "gcs-storage", "label": "Google Cloud Storage", "category": "Storage", "protocol": "https", "host": "storage.googleapis.com", "port": 443, "region": "all"}
+      ]
+    },
+    "hybrid": {
+      "label": "Hybrid On-Premise",
+      "description": "On-premise deployment with cloud connectivity",
+      "endpoints": [
+        {"id": "intenseye-api", "label": "Intenseye API", "category": "Core API", "protocol": "https", "host": "api.intenseye.com", "port": 443, "region": "all"},
+        {"id": "intenseye-vault", "label": "Intenseye Vault", "category": "Core API", "protocol": "https", "host": "vault.intenseye.com", "port": 443, "region": "all"},
+        {"id": "pulsar", "label": "Pulsar", "category": "Telemetry", "protocol": "tcp", "host": "pulsar.intenseye.com", "port": 6651, "region": "all"},
+        {"id": "us01live", "label": "US01 Live", "category": "Live Streaming", "protocol": "tcp", "host": "us01live.intenseye.com", "port": 32401, "region": "all"},
+        {"id": "us02live", "label": "US02 Live", "category": "Live Streaming", "protocol": "tcp", "host": "us02live.intenseye.com", "port": 32402, "region": "all"},
+        {"id": "teamviewer-router", "label": "TeamViewer Router", "category": "Team Viewer", "protocol": "https", "host": "router.teamviewer.com", "port": 443, "region": "all"},
+        {"id": "teamviewer-master", "label": "TeamViewer Master", "category": "Team Viewer", "protocol": "https", "host": "master.teamviewer.com", "port": 443, "region": "all"},
+        {"id": "teamviewer-login", "label": "TeamViewer Login", "category": "Team Viewer", "protocol": "https", "host": "login.teamviewer.com", "port": 443, "region": "all"},
+        {"id": "gcs-storage", "label": "Google Cloud Storage - 443", "category": "Storage", "protocol": "https", "host": "storage.googleapis.com", "port": 443, "region": "all"},
+        {"id": "s3-videos", "label": "S3 Videos - 443", "category": "Storage", "protocol": "https", "host": "intenseye-videos.s3.amazonaws.com", "port": 443, "region": "all"},
+        {"id": "s3-video-output", "label": "S3 Video Output - 443", "category": "Storage", "protocol": "https", "host": "intenseye-video-output.s3.amazonaws.com", "port": 443, "region": "all"},
+        {"id": "launchdarkly-app", "label": "LaunchDarkly App", "category": "Feature Flags", "protocol": "https", "host": "app.launchdarkly.com", "port": 443, "region": "all"},
+        {"id": "launchdarkly-stream", "label": "LaunchDarkly Stream", "category": "Feature Flags", "protocol": "https", "host": "stream.launchdarkly.com", "port": 443, "region": "all"},
+        {"id": "launchdarkly-events", "label": "LaunchDarkly Events", "category": "Feature Flags", "protocol": "https", "host": "events.launchdarkly.com", "port": 443, "region": "all"},
+        {"id": "replicated-app", "label": "Replicated App", "category": "Infrastructure", "protocol": "https", "host": "replicated.app", "port": 443, "region": "all"},
+        {"id": "replicated-proxy", "label": "Replicated Proxy", "category": "Infrastructure", "protocol": "https", "host": "proxy.replicated.com", "port": 443, "region": "all"},
+        {"id": "kots", "label": "KOTS", "category": "Infrastructure", "protocol": "https", "host": "kots.io", "port": 443, "region": "all"},
+        {"id": "docker-com", "label": "Docker.com", "category": "Infrastructure", "protocol": "https", "host": "docker.com", "port": 443, "region": "all"},
+        {"id": "docker-io", "label": "Docker.io", "category": "Infrastructure", "protocol": "https", "host": "docker.io", "port": 443, "region": "all"},
+        {"id": "ubuntu-archive", "label": "Ubuntu Archive", "category": "Infrastructure", "protocol": "https", "host": "archive.ubuntu.com", "port": 443, "region": "all"},
+        {"id": "ubuntu-security", "label": "Ubuntu Security", "category": "Infrastructure", "protocol": "https", "host": "security.ubuntu.com", "port": 443, "region": "all"},
+        {"id": "nvidia-developer", "label": "NVIDIA Developer", "category": "Infrastructure", "protocol": "https", "host": "developer.download.nvidia.com", "port": 443, "region": "all"},
+        {"id": "allxon-api-us", "label": "Allxon API (US)", "category": "Allxon", "protocol": "https", "host": "api-us.adm.allxon.com", "port": 443, "region": "all"},
+        {"id": "allxon-iot-ecc-us-443", "label": "Allxon IoT ECC (US) - 443", "category": "Allxon", "protocol": "https", "host": "iot-ecc-us.adm.allxon.com", "port": 443, "region": "all"},
+        {"id": "allxon-iot-ecc-us-8883", "label": "Allxon IoT ECC (US) - 8883", "category": "Allxon", "protocol": "tcp", "host": "iot-ecc-us.adm.allxon.com", "port": 8883, "region": "all"},
+        {"id": "allxon-iot-us-443", "label": "Allxon IoT (US) - 443", "category": "Allxon", "protocol": "https", "host": "iot-us.adm.allxon.com", "port": 443, "region": "all"},
+        {"id": "allxon-iot-us-8883", "label": "Allxon IoT (US) - 8883", "category": "Allxon", "protocol": "tcp", "host": "iot-us.adm.allxon.com", "port": 8883, "region": "all"},
+        {"id": "allxon-bdm-s3", "label": "Allxon BDM Storage - 443", "category": "Allxon", "protocol": "https", "host": "bdmwebfile-prod-us.s3.us-east-2.amazonaws.com", "port": 443, "region": "all"},
+        {"id": "allxon-dms-s3", "label": "Allxon DMS Storage - 443", "category": "Allxon", "protocol": "https", "host": "s3-us.dms.allxon.com", "port": 443, "region": "all"},
+        {"id": "cloudflare-dns", "label": "Cloudflare DNS", "category": "Time Sync", "protocol": "https", "host": "cloudflare-dns.com", "port": 443, "region": "all"},
+        {"id": "cloudflare-roughtime", "label": "Cloudflare Roughtime", "category": "Time Sync", "protocol": "udp", "host": "roughtime.cloudflare.com", "port": 2002, "region": "all"},
+        {"id": "google-ntp", "label": "Google NTP", "category": "Time Sync", "protocol": "udp", "host": "time.google.com", "port": 123, "region": "all"}
+      ]
+    }
+  }
+}
