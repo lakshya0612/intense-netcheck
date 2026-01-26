@@ -333,36 +333,48 @@ func testTCP(ep Endpoint, timeout time.Duration) TestResult {
 }
 
 func testHTTPS(ep Endpoint, timeout time.Duration) TestResult {
-	result := TestResult{Endpoint: ep, Method: "HTTPS"}
+	result := TestResult{Endpoint: ep, Method: "TLS"}
+
+	// Try HTTP HEAD request first
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			ServerName:         ep.Host,
+			InsecureSkipVerify: false,
+		},
+		DialContext: (&net.Dialer{
+			Timeout: timeout,
+		}).DialContext,
+		DisableKeepAlives: true,
+		MaxIdleConns:      0,
+	}
+
+	req, _ := http.NewRequest("HEAD", fmt.Sprintf("https://%s:%d/", ep.Host, ep.Port), nil)
+	req.Header.Set("User-Agent", "Intenseye-NetCheck/1.0")
 
 	client := &http.Client{
-		Timeout: timeout,
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: false,
-			},
+		Timeout:   timeout,
+		Transport: transport,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
 		},
 	}
 
-	url := fmt.Sprintf("https://%s:%d/", ep.Host, ep.Port)
-	if ep.Protocol == "wss" {
-		// For WebSocket, just test TCP/TLS connection
-		return testTCP(ep, timeout)
-	}
-
-	req, _ := http.NewRequest("HEAD", url, nil)
-	req.Header.Set("User-Agent", "Intenseye-NetCheck/1.0")
-
 	resp, err := client.Do(req)
 	if err != nil {
-		// Try GET if HEAD fails
-		req.Method = "GET"
-		resp, err = client.Do(req)
-		if err != nil {
-			result.Reachable = false
-			result.Error = simplifyError(err)
-			return result
+		// Fall back to direct TLS handshake
+		if strings.Contains(err.Error(), "EOF") {
+			return testTLSDirect(ep, timeout)
 		}
+
+		// If we get a certificate error, try with insecure skip verify
+		// to determine if it's a network issue or just a cert issue
+		if strings.Contains(err.Error(), "certificate") || strings.Contains(err.Error(), "x509") {
+			return testHTTPSInsecure(ep, timeout, simplifyError(err))
+		}
+
+		result.Reachable = false
+		result.Error = simplifyError(err)
+		return result
 	}
 	defer resp.Body.Close()
 
@@ -372,6 +384,88 @@ func testHTTPS(ep Endpoint, timeout time.Duration) TestResult {
 	// Get TLS certificate expiry
 	if resp.TLS != nil && len(resp.TLS.PeerCertificates) > 0 {
 		result.TLSExpiry = resp.TLS.PeerCertificates[0].NotAfter
+	}
+
+	return result
+}
+
+// testHTTPSInsecure checks if endpoint is reachable when skipping cert verification
+func testHTTPSInsecure(ep Endpoint, timeout time.Duration, certError string) TestResult {
+	result := TestResult{Endpoint: ep, Method: "TLS"}
+
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			ServerName:         ep.Host,
+			InsecureSkipVerify: true, // Skip verification to test connectivity
+		},
+		DialContext: (&net.Dialer{
+			Timeout: timeout,
+		}).DialContext,
+		DisableKeepAlives: true,
+		MaxIdleConns:      0,
+	}
+
+	req, _ := http.NewRequest("HEAD", fmt.Sprintf("https://%s:%d/", ep.Host, ep.Port), nil)
+	req.Header.Set("User-Agent", "Intenseye-NetCheck/1.0")
+
+	client := &http.Client{
+		Timeout:   timeout,
+		Transport: transport,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		// Still can't connect even without cert verification
+		result.Reachable = false
+		result.Error = simplifyError(err)
+		return result
+	}
+	defer resp.Body.Close()
+
+	// Endpoint is reachable, but has certificate issues
+	result.Reachable = true
+	result.TLSValid = false
+	result.Error = certError
+
+	return result
+}
+
+// testTLSDirect tests TCP connection and TLS handshake without HTTP
+func testTLSDirect(ep Endpoint, timeout time.Duration) TestResult {
+	result := TestResult{Endpoint: ep, Method: "TLS"}
+	addr := fmt.Sprintf("%s:%d", ep.Host, ep.Port)
+
+	dialer := &net.Dialer{Timeout: timeout}
+	conn, err := dialer.Dial("tcp", addr)
+	if err != nil {
+		result.Reachable = false
+		result.Error = simplifyError(err)
+		return result
+	}
+	defer conn.Close()
+
+	// Perform TLS handshake
+	tlsConn := tls.Client(conn, &tls.Config{
+		ServerName:         ep.Host,
+		InsecureSkipVerify: false,
+	})
+
+	if err := tlsConn.Handshake(); err != nil {
+		result.Reachable = false
+		result.Error = simplifyError(err)
+		return result
+	}
+
+	result.Reachable = true
+	result.TLSValid = true
+
+	// Get TLS certificate expiry
+	certs := tlsConn.ConnectionState().PeerCertificates
+	if len(certs) > 0 {
+		result.TLSExpiry = certs[0].NotAfter
 	}
 
 	return result
@@ -532,19 +626,19 @@ func outputTable(results []TestResult) {
 
 func outputJSON(results []TestResult) {
 	type jsonResult struct {
-		ID          string  `json:"id"`
-		Label       string  `json:"label"`
-		Category    string  `json:"category"`
-		Host        string  `json:"host"`
-		Port        int     `json:"port"`
-		Protocol    string  `json:"protocol"`
-		Reachable   bool    `json:"reachable"`
-		LatencyMs   int64   `json:"latency_ms"`
-		Error       string  `json:"error,omitempty"`
-		PingMs      int64   `json:"ping_ms,omitempty"`
-		PingLoss    float64 `json:"ping_loss,omitempty"`
-		TLSValid    bool    `json:"tls_valid,omitempty"`
-		TLSExpiry   string  `json:"tls_expiry,omitempty"`
+		ID        string  `json:"id"`
+		Label     string  `json:"label"`
+		Category  string  `json:"category"`
+		Host      string  `json:"host"`
+		Port      int     `json:"port"`
+		Protocol  string  `json:"protocol"`
+		Reachable bool    `json:"reachable"`
+		LatencyMs int64   `json:"latency_ms"`
+		Error     string  `json:"error,omitempty"`
+		PingMs    int64   `json:"ping_ms,omitempty"`
+		PingLoss  float64 `json:"ping_loss,omitempty"`
+		TLSValid  bool    `json:"tls_valid,omitempty"`
+		TLSExpiry string  `json:"tls_expiry,omitempty"`
 	}
 
 	var jsonResults []jsonResult
