@@ -30,6 +30,7 @@ type Endpoint struct {
 	Host        string `json:"host"`
 	Port        int    `json:"port"`
 	Region      string `json:"region"`
+	TestMode    string `json:"testMode,omitempty"`
 }
 
 type DeploymentConfig struct {
@@ -45,15 +46,16 @@ type EndpointsConfig struct {
 }
 
 type TestResult struct {
-	Endpoint    Endpoint
-	Reachable   bool
-	Latency     time.Duration
-	Error       string
-	Method      string
-	TLSValid    bool
-	TLSExpiry   time.Time
-	PingLatency time.Duration
-	PingLoss    float64
+	Endpoint      Endpoint
+	Reachable     bool
+	Latency       time.Duration
+	Error         string
+	Method        string
+	TLSValid      bool
+	TLSExpiry     time.Time
+	PingLatency   time.Duration
+	PingLoss      float64
+	Informational bool
 }
 
 var endpointsConfig EndpointsConfig
@@ -283,9 +285,32 @@ func runTests(endpoints []Endpoint, timeout time.Duration, runPing bool, concurr
 	return results
 }
 
+func testDNS(ep Endpoint, timeout time.Duration) TestResult {
+	result := TestResult{Endpoint: ep, Method: "DNS", Informational: true}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	resolver := &net.Resolver{}
+	addrs, err := resolver.LookupHost(ctx, ep.Host)
+	if err != nil {
+		result.Reachable = false
+		result.Error = "DNS resolution failed"
+		return result
+	}
+	if len(addrs) > 0 {
+		result.Reachable = true
+	}
+	return result
+}
+
 func testEndpoint(ep Endpoint, timeout time.Duration) TestResult {
 	result := TestResult{Endpoint: ep}
 	start := time.Now()
+
+	if ep.TestMode == "dns" {
+		result = testDNS(ep, timeout)
+		result.Latency = time.Since(start)
+		return result
+	}
 
 	switch ep.Protocol {
 	case "tcp", "other":
@@ -486,9 +511,17 @@ func outputTable(results []TestResult) {
 		fmt.Printf("%s%s=== %s ===%s\n", colorBold, colorBlue, cat, colorReset)
 
 		for _, r := range categories[cat] {
-			status := fmt.Sprintf("%s✓ PASS%s", colorGreen, colorReset)
-			if !r.Reachable {
+			var status string
+			if r.Informational {
+				if r.Reachable {
+					status = fmt.Sprintf("%s● INFO%s", colorCyan, colorReset)
+				} else {
+					status = fmt.Sprintf("%s● INFO%s", colorYellow, colorReset)
+				}
+			} else if !r.Reachable {
 				status = fmt.Sprintf("%s✗ FAIL%s", colorRed, colorReset)
+			} else {
+				status = fmt.Sprintf("%s✓ PASS%s", colorGreen, colorReset)
 			}
 
 			latencyStr := fmt.Sprintf("%dms", r.Latency.Milliseconds())
@@ -513,7 +546,11 @@ func outputTable(results []TestResult) {
 				pingStr,
 			)
 
-			if !r.Reachable && r.Error != "" {
+			if r.Informational && r.Reachable {
+				fmt.Printf(" %s(DNS resolved - does not accept HTTP/TLS)%s", colorCyan, colorReset)
+			} else if r.Informational && !r.Reachable {
+				fmt.Printf(" - %s%s%s", colorYellow, r.Error, colorReset)
+			} else if !r.Reachable && r.Error != "" {
 				fmt.Printf(" - %s%s%s", colorRed, r.Error, colorReset)
 			}
 
@@ -532,36 +569,40 @@ func outputTable(results []TestResult) {
 
 func outputJSON(results []TestResult) {
 	type jsonResult struct {
-		ID          string  `json:"id"`
-		Label       string  `json:"label"`
-		Category    string  `json:"category"`
-		Host        string  `json:"host"`
-		Port        int     `json:"port"`
-		Protocol    string  `json:"protocol"`
-		Reachable   bool    `json:"reachable"`
-		LatencyMs   int64   `json:"latency_ms"`
-		Error       string  `json:"error,omitempty"`
-		PingMs      int64   `json:"ping_ms,omitempty"`
-		PingLoss    float64 `json:"ping_loss,omitempty"`
-		TLSValid    bool    `json:"tls_valid,omitempty"`
-		TLSExpiry   string  `json:"tls_expiry,omitempty"`
+		ID            string  `json:"id"`
+		Label         string  `json:"label"`
+		Category      string  `json:"category"`
+		Host          string  `json:"host"`
+		Port          int     `json:"port"`
+		Protocol      string  `json:"protocol"`
+		Reachable     bool    `json:"reachable"`
+		LatencyMs     int64   `json:"latency_ms"`
+		Error         string  `json:"error,omitempty"`
+		PingMs        int64   `json:"ping_ms,omitempty"`
+		PingLoss      float64 `json:"ping_loss,omitempty"`
+		TLSValid      bool    `json:"tls_valid,omitempty"`
+		TLSExpiry     string  `json:"tls_expiry,omitempty"`
+		Informational bool    `json:"informational,omitempty"`
+		TestMode      string  `json:"test_mode,omitempty"`
 	}
 
 	var jsonResults []jsonResult
 	for _, r := range results {
 		jr := jsonResult{
-			ID:        r.Endpoint.ID,
-			Label:     r.Endpoint.Label,
-			Category:  r.Endpoint.Category,
-			Host:      r.Endpoint.Host,
-			Port:      r.Endpoint.Port,
-			Protocol:  r.Endpoint.Protocol,
-			Reachable: r.Reachable,
-			LatencyMs: r.Latency.Milliseconds(),
-			Error:     r.Error,
-			PingMs:    r.PingLatency.Milliseconds(),
-			PingLoss:  r.PingLoss,
-			TLSValid:  r.TLSValid,
+			ID:            r.Endpoint.ID,
+			Label:         r.Endpoint.Label,
+			Category:      r.Endpoint.Category,
+			Host:          r.Endpoint.Host,
+			Port:          r.Endpoint.Port,
+			Protocol:      r.Endpoint.Protocol,
+			Reachable:     r.Reachable,
+			LatencyMs:     r.Latency.Milliseconds(),
+			Error:         r.Error,
+			PingMs:        r.PingLatency.Milliseconds(),
+			PingLoss:      r.PingLoss,
+			TLSValid:      r.TLSValid,
+			Informational: r.Informational,
+			TestMode:      r.Endpoint.TestMode,
 		}
 		if !r.TLSExpiry.IsZero() {
 			jr.TLSExpiry = r.TLSExpiry.Format(time.RFC3339)
@@ -576,8 +617,11 @@ func outputJSON(results []TestResult) {
 func printSummary(results []TestResult) {
 	passed := 0
 	failed := 0
+	info := 0
 	for _, r := range results {
-		if r.Reachable {
+		if r.Informational {
+			info++
+		} else if r.Reachable {
 			passed++
 		} else {
 			failed++
@@ -589,10 +633,16 @@ func printSummary(results []TestResult) {
 	fmt.Printf("  %sPassed: %d%s\n", colorGreen, passed, colorReset)
 	if failed > 0 {
 		fmt.Printf("  %sFailed: %d%s\n", colorRed, failed, colorReset)
+	} else {
+		fmt.Printf("  Failed: %d\n", failed)
+	}
+	if info > 0 {
+		fmt.Printf("  %sInfo:   %d%s (DNS-only check, excluded from pass/fail)\n", colorCyan, info, colorReset)
+	}
+	if failed > 0 {
 		fmt.Println()
 		fmt.Printf("%sNote: Run with --traceroute flag to diagnose failed connections%s\n", colorYellow, colorReset)
 	} else {
-		fmt.Printf("  Failed: %d\n", failed)
 		fmt.Println()
 		fmt.Printf("%s✓ All endpoints are reachable from this network!%s\n", colorGreen, colorReset)
 	}

@@ -16,7 +16,7 @@
         {"id": "balena-delta-data", "label": "Balena Delta Data", "category": "Device Management", "protocol": "https", "host": "delta-data.balena-cloud.com", "port": 443, "region": "all"},
         {"id": "balena-registry", "label": "Balena Registry", "category": "Device Management", "protocol": "https", "host": "registry2.balena-cloud.com", "port": 443, "region": "all"},
         {"id": "balena-registry-data", "label": "Balena Registry Data", "category": "Device Management", "protocol": "https", "host": "registry-data.balena-cloud.com", "port": 443, "region": "all"},
-        {"id": "balena-vpn", "label": "Balena VPN", "category": "Device Management", "protocol": "https", "host": "vpn.balena-cloud.com", "port": 443, "region": "all"},
+        {"id": "balena-vpn", "label": "Balena VPN", "category": "Device Management", "protocol": "https", "host": "vpn.balena-cloud.com", "port": 443, "region": "all", "testMode": "dns"},
         {"id": "google-accounts", "label": "Google Accounts", "category": "Storage", "protocol": "https", "host": "accounts.google.com", "port": 443, "region": "all"},
         {"id": "gcr", "label": "Container Registry", "category": "Storage", "protocol": "https", "host": "gcr.io", "port": 443, "region": "all"},
         {"id": "gcs", "label": "Google Cloud Storage", "category": "Storage", "protocol": "https", "host": "storage.googleapis.com", "port": 443, "region": "all"},
